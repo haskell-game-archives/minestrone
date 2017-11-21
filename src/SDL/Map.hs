@@ -32,6 +32,5 @@ buildMap txt = Map { width  = w
         readTile t = read t :: CInt
         tiles  = map readTile $ separate ',' $ intercalate "," rows
 
--- TODO: work out why V2s are (y, x)
 grid :: Integral a => [Point V2 a]
 grid = [(P $ V2 x y) | y <- [0..720], x <- [0..720], x `mod` 80 == 0, y `mod` 80 == 0]
