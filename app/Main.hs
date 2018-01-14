@@ -5,6 +5,7 @@ import Pet
 import Prelude hiding (floor)
 import Control.Monad
 import Control.Monad.IO.Class
+import Control.Monad.SurfaceT
 import Foreign.C.Types (CInt)
 import SDL
 import SDL.Vect
@@ -24,9 +25,9 @@ main = do
   initialize [InitVideo]
   window <- createWindow "Pet" defaultWindow { windowInitialSize = V2 screenSize screenSize }
   houseMap <- loadMap "assets/house.map"
-  tileset <- loadBMP "assets/tileset.bmp"
+  tileset <- loadBMP "assets/tileset_alt.bmp"
   showWindow window
-  loop newPet houseMap tileset window
+  loop newPet { location = P (V2 ((5 * 16) * 5) ((5 * 16) * 8)) } houseMap tileset window
   destroyWindow window
   freeSurface tileset
   quit
@@ -37,7 +38,7 @@ loop pet houseMap tileset window = do
   events <- pollEvents
   surface <- getWindowSurface window
   blitMap tileset surface houseMap
---  blitPet tileset surface pet
+  blitPet tileset surface pet
   updateWindowSurface window
   unless (quit events) $ do
     loop pet houseMap tileset window
@@ -46,12 +47,9 @@ loop pet houseMap tileset window = do
 blitMap :: Surface -> Surface -> Map -> IO ()
 blitMap tileset target m = forM_ (tiles m) $ \t@(id, rect) -> do
   tile <- nthTile tileset id
-  print $ tiles m
   surfaceBlitScaled tileset (Just tile) target (Just (Rectangle (fromIntegral <$> rect) (V2 80 80)))
 
 blitPet :: Surface -> Surface -> Pet -> IO ()
 blitPet tileset target pet = do
-  dims@(Rectangle _ size) <- nthTile tileset 4
+  dims@(Rectangle _ size) <- nthTile tileset 32
   surfaceBlitScaled tileset (Just dims) target (Just (Rectangle (location pet) (scale size)))
-
-
