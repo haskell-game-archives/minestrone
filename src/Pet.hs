@@ -1,9 +1,7 @@
 module Pet where
 
-import Control.Monad.IO.Class (MonadIO)
 import Foreign.C.Types (CInt)
 import SDL
-import SDL.Vect
 
 data Status = Happy | Satiated | Lacking | Alert deriving (Read, Show, Eq, Ord)
 

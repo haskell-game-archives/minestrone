@@ -5,51 +5,85 @@ import Pet
 import Prelude hiding (floor)
 import Control.Monad
 import Control.Monad.IO.Class
-import Control.Monad.SurfaceT
+import Control.Monad.Trans.Reader
 import Foreign.C.Types (CInt)
 import SDL
 import SDL.Vect
-import SDL.Map -- see src/SDL/Map.hs
+import SDL.TileMap
 import SDL.Tilesheet -- see src/SDL/Tilesheet.hs
 import System.Environment (getExecutablePath)
 import System.FilePath ((</>))
 import Control.Concurrent (threadDelay)
+import qualified Data.Map as Map
 
-screenSize :: Integral a => a
-screenSize = 800
+data Context = Context {
+  cwindow :: Window
+, crenderer :: Renderer
+, ctileset :: Texture
+, chouse :: TileMap
+, cpet :: Pet
+}
 
-scale = (* 5)
+type PetT m a = ReaderT Context m a
+type PetM a = PetT IO a
+
+runPet :: PetM a -> Context -> IO a
+runPet = runReaderT
+
+copyTile :: CInt -> Point V2 CInt -> PetM ()
+copyTile n loc = do
+  renderer <- asks crenderer
+  tileset <- asks ctileset
+  dims@(Rectangle _ size) <- nthTile tileset n
+  copy renderer tileset (Just dims) (Just (Rectangle loc size))
 
 main :: IO ()
 main = do
   initialize [InitVideo]
-  window <- createWindow "Pet" defaultWindow { windowInitialSize = V2 screenSize screenSize }
-  houseMap <- loadMap "assets/house.map"
-  tileset <- loadBMP "assets/tileset_alt.bmp"
+  window <- createWindow "Pet" defaultWindow {
+      windowInitialSize = V2 800 800
+    , windowOpenGL = Just defaultOpenGL
+    , windowResizable = True
+    }
+  renderer <- createRenderer window 0 defaultRenderer
+  rendererLogicalSize renderer $= Just (V2 (10 * 16) (10 * 16))
+  houseMap <- loadTileMap "assets/house.map"
+  tilesetT <- loadBMP "assets/tileset_alt.bmp"
+  tileset <- createTextureFromSurface renderer tilesetT
   showWindow window
-  loop newPet { location = P (V2 ((5 * 16) * 5) ((5 * 16) * 8)) } houseMap tileset window
+  let context = Context {
+    cwindow = window
+    , crenderer = renderer
+    , ctileset = tileset
+    , chouse = houseMap
+    , cpet = newPet
+  }
+  loop context
   destroyWindow window
-  freeSurface tileset
+  destroyTexture tileset
+  freeSurface tilesetT
+  destroyRenderer renderer
   quit
 
-
-loop :: Pet -> Map -> Surface -> Window -> IO ()
-loop pet houseMap tileset window = do
+loop :: Context -> IO ()
+loop context = do
+  let renderer = crenderer context
   events <- pollEvents
-  surface <- getWindowSurface window
-  blitMap tileset surface houseMap
-  blitPet tileset surface pet
-  updateWindowSurface window
   unless (quit events) $ do
-    loop pet houseMap tileset window
+    clear renderer
+    runPet draw context
+    present renderer
+    loop context
   where quit events = elem QuitEvent $ map eventPayload events
+        draw = blitMap >> blitPet
 
-blitMap :: Surface -> Surface -> Map -> IO ()
-blitMap tileset target m = forM_ (tiles m) $ \t@(id, rect) -> do
-  tile <- nthTile tileset id
-  surfaceBlitScaled tileset (Just tile) target (Just (Rectangle (fromIntegral <$> rect) (V2 80 80)))
+blitMap :: PetM ()
+blitMap = do
+  m <- asks chouse
+  forM_ (tiles m) $ \(id, rect) ->
+    copyTile id (fromIntegral <$> rect)
 
-blitPet :: Surface -> Surface -> Pet -> IO ()
-blitPet tileset target pet = do
-  dims@(Rectangle _ size) <- nthTile tileset 32
-  surfaceBlitScaled tileset (Just dims) target (Just (Rectangle (location pet) (scale size)))
+blitPet :: PetM ()
+blitPet = do
+  pet <- asks cpet
+  copyTile 32 $ location pet
