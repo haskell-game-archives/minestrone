@@ -41,3 +41,4 @@ executables:
     - containers
     - sdl2
     - pet
+    - directory

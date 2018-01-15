@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9c5719b8a5716f5c3774adef0630d58735240a9a8310f0cd89bd76e33630409
+-- hash: 6efc2bf3724d27abb20811e23d581cb20f7ea6acb669be44ad764c63940231d5
 
 name:           pet
 version:        0.1.0.0
@@ -49,6 +49,7 @@ executable pet
   build-depends:
       base >=4.7 && <5
     , containers
+    , directory
     , filepath
     , mtl
     , pet

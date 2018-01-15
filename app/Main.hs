@@ -12,7 +12,8 @@ import SDL.Vect
 import SDL.TileMap
 import SDL.Tilesheet -- see src/SDL/Tilesheet.hs
 import System.Environment (getExecutablePath)
-import System.FilePath ((</>))
+import System.FilePath ((</>), takeFileName, dropFileName)
+import System.Directory (setCurrentDirectory)
 import Control.Concurrent (threadDelay)
 import qualified Data.Map as Map
 
@@ -30,15 +31,25 @@ type PetM a = PetT IO a
 runPet :: PetM a -> Context -> IO a
 runPet = runReaderT
 
-copyTile :: CInt -> Point V2 CInt -> PetM ()
-copyTile n loc = do
+intToCInt :: Int -> CInt
+intToCInt = fromInteger . toInteger
+
+copyTile :: Int -> (Int, Int) -> PetM ()
+copyTile n (x, y) = do
   renderer <- asks crenderer
   tileset <- asks ctileset
   dims@(Rectangle _ size) <- nthTile tileset n
-  copy renderer tileset (Just dims) (Just (Rectangle loc size))
+  copy
+    renderer
+    tileset
+    (Just dims)
+    (Just (Rectangle (P $ V2 (intToCInt x) (intToCInt y))
+      size))
 
 main :: IO ()
 main = do
+  execPath <- getExecutablePath
+  unless (takeFileName execPath == "ghci") (setCurrentDirectory (dropFileName execPath))
   initialize [InitVideo]
   window <- createWindow "Pet" defaultWindow {
       windowInitialSize = V2 800 800
@@ -75,15 +86,27 @@ loop context = do
     present renderer
     loop context
   where quit events = elem QuitEvent $ map eventPayload events
-        draw = blitMap >> blitPet
+        draw = blitMap >> blitStatus >> blitPet
 
 blitMap :: PetM ()
 blitMap = do
   m <- asks chouse
-  forM_ (tiles m) $ \(id, rect) ->
-    copyTile id (fromIntegral <$> rect)
+  forM_ (tiles m) $ uncurry copyTile
 
 blitPet :: PetM ()
 blitPet = do
   pet <- asks cpet
   copyTile 32 $ location pet
+
+blitStatus :: PetM ()
+blitStatus = do
+  copyIconStatus 1 11 hygiene
+  copyIconStatus 4 12 hunger
+  copyIconStatus 7 13 entertainment
+  where copyIcon x n = copyTile n (16 * x, 0)
+        copyStatus x f = do
+          pet <- asks cpet
+          copyTile (statusTile $ f pet) (16 * x, 0)
+        copyIconStatus x n f = do
+          copyIcon   (x+0) n
+          copyStatus (x+1) f

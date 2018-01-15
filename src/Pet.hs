@@ -1,13 +1,12 @@
 module Pet where
 
-import Foreign.C.Types (CInt)
 import SDL
 
 data Status = Happy | Satiated | Lacking | Alert deriving (Read, Show, Eq, Ord)
 
 data Pet = Pet {
   age :: Int
-, location :: Point V2 CInt
+, location :: (Int, Int)
 , hygiene :: Status
 , hunger :: Status
 , entertainment :: Status
@@ -15,8 +14,14 @@ data Pet = Pet {
 
 newPet :: Pet
 newPet = Pet { age = 0
-             , location = P (V2 0 0)
+             , location = (80, 120)
              , hygiene = Happy
              , hunger = Happy
              , entertainment = Happy
              }
+
+statusTile :: Status -> Int
+statusTile Happy = 2
+statusTile Satiated = 3
+statusTile Lacking = 4
+statusTile Alert = 5

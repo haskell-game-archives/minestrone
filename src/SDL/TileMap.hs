@@ -7,7 +7,7 @@ import Data.List (intercalate)
 
 data TileMap = TileMap { width  :: Int
                , height :: Int
-               , tiles  :: [(CInt, Point V2 Int)] }
+               , tiles  :: [(Int, (Int, Int))] }
            deriving (Read, Show)
 
 separate :: Char -> String -> [String]
@@ -29,8 +29,7 @@ buildTileMap txt = TileMap { width  = w
         matrix = map (separate ',') rows
         w = length rows
         h = length $ head matrix
-        readTile t = read t :: CInt
-        tiles  = map readTile $ separate ',' $ intercalate "," rows
+        tiles  = map read $ separate ',' $ intercalate "," rows
 
-grid :: Integral a => [Point V2 a]
-grid = [P $ V2 (x*16) (y*16) | y <- [0..9], x <- [0..9]]
+grid :: [(Int, Int)]
+grid = [(x*16, y*16) | y <- [0..9], x <- [0..9]]
