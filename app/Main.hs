@@ -1,21 +1,21 @@
 {-# LANGUAGE OverloadedStrings #-}
 module Main where
 
-import Pet
-import Prelude hiding (floor)
+import Control.Concurrent (threadDelay)
 import Control.Monad
 import Control.Monad.IO.Class
 import Control.Monad.Trans.Reader
+import qualified Data.Map as Map
 import Foreign.C.Types (CInt)
+import Pet
+import Prelude hiding (floor)
 import SDL
-import SDL.Vect
 import SDL.TileMap
 import SDL.Tilesheet -- see src/SDL/Tilesheet.hs
+import SDL.Vect
+import System.Directory (setCurrentDirectory)
 import System.Environment (getExecutablePath)
 import System.FilePath ((</>), takeFileName, dropFileName)
-import System.Directory (setCurrentDirectory)
-import Control.Concurrent (threadDelay)
-import qualified Data.Map as Map
 
 data Context = Context {
   cwindow :: Window
@@ -110,3 +110,4 @@ blitStatus = do
         copyIconStatus x n f = do
           copyIcon   (x+0) n
           copyStatus (x+1) f
+

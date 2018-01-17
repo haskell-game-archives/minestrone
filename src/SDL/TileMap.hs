@@ -1,9 +1,9 @@
 -- CSV map support based on SDL
 module SDL.TileMap where
 
-import SDL
-import Foreign.C.Types
 import Data.List (intercalate)
+import Foreign.C.Types
+import SDL
 
 data TileMap = TileMap { width  :: Int
                , height :: Int

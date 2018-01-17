@@ -1,0 +1,60 @@
+import Control.Concurrent ()
+import Control.Monad ( Monad((>>)), forM_, unless )
+import Control.Monad.IO.Class ()
+import Control.Monad.Trans.Reader ( ReaderT(runReaderT), asks )
+import qualified Data.Map as Map ()
+import Foreign.C.Types ( CInt )
+import Pet
+    ( Pet(entertainment, hunger, hygiene, location),
+      newPet,
+      statusTile )
+import Prelude
+    ( map,
+      ($),
+      Eq((==)),
+      Integral(toInteger),
+      Num((+), (*), fromInteger),
+      Foldable(elem),
+      Bool(True),
+      Int,
+      Maybe(Just),
+      IO,
+      (.),
+      uncurry )
+import SDL
+    ( Texture,
+      Rectangle(Rectangle),
+      WindowConfig(windowResizable, windowOpenGL, windowInitialSize),
+      Window,
+      Renderer,
+      InitFlag(InitVideo),
+      EventPayload(QuitEvent),
+      Event(eventPayload),
+      V2(V2),
+      Point(P),
+      ($=),
+      rendererLogicalSize,
+      present,
+      loadBMP,
+      freeSurface,
+      destroyTexture,
+      defaultRenderer,
+      createTextureFromSurface,
+      copy,
+      clear,
+      defaultOpenGL,
+      showWindow,
+      destroyWindow,
+      destroyRenderer,
+      defaultWindow,
+      createWindow,
+      createRenderer,
+      quit,
+      initialize,
+      pollEvents )
+import SDL.TileMap ( TileMap(tiles), loadTileMap )
+import SDL.Tilesheet ( nthTile )
+import SDL.Vect ()
+import System.Directory ( setCurrentDirectory )
+import System.Environment ( getExecutablePath )
+import System.FilePath ( takeFileName, dropFileName )

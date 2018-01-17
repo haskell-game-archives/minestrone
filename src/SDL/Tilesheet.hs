@@ -1,10 +1,10 @@
 -- tile based sprite support
 module SDL.Tilesheet where
 
-import SDL
 import Control.Monad.IO.Class
-import SDL.Vect
 import Foreign.C.Types
+import SDL
+import SDL.Vect
 
 -- takes a surface and an index and returns the
 -- rectangle for the sprite at the index
