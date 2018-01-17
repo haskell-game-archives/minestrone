@@ -1,3 +1,0 @@
-import SDL ()
-import Foreign.C.Types ()
-import Data.List ( intercalate )
