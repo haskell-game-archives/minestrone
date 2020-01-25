@@ -16,6 +16,7 @@ import SDL.Vect
 import System.Directory (setCurrentDirectory)
 import System.Environment (getExecutablePath)
 import System.FilePath ((</>), takeFileName, dropFileName)
+import Paths_pet
 
 data Context = Context {
   cwindow :: Window
@@ -50,16 +51,16 @@ main :: IO ()
 main = do
   execPath <- getExecutablePath
   unless (takeFileName execPath == "ghci") (setCurrentDirectory (dropFileName execPath))
-  initialize [InitVideo]
+  initializeAll
   window <- createWindow "Pet" defaultWindow {
       windowInitialSize = V2 800 800
-    , windowOpenGL = Just defaultOpenGL
+    , windowGraphicsContext = NoGraphicsContext
     , windowResizable = True
     }
   renderer <- createRenderer window 0 defaultRenderer
   rendererLogicalSize renderer $= Just (V2 (10 * 16) (10 * 16))
-  houseMap <- loadTileMap "assets/house.map"
-  tilesetT <- loadBMP "assets/tileset_alt.bmp"
+  houseMap <- loadTileMap =<< getDataFileName "house.map"
+  tilesetT <- loadBMP =<< getDataFileName "tileset_alt.bmp"
   tileset <- createTextureFromSurface renderer tilesetT
   showWindow window
   let context = Context {
